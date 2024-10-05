@@ -3,7 +3,7 @@ name: Build and Release Library
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - '*.*.*'
   workflow_dispatch:
 
 jobs:
