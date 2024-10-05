@@ -1,0 +1,19 @@
+apply plugin: 'com.android.application'
+
+
+android {
+    namespace 'dev.ilyasse.translator'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "dev.ilyasse.translator"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+}
+
+dependencies {
+    implementation libs.okhttp
+}
