@@ -29,29 +29,42 @@ jobs:
     - name: Build Library
       run: ./gradlew build
 
-    - name: Get previous tag
-      id: previoustag
-      run: |
-        echo "PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo '')" >> $GITHUB_OUTPUT
-
     - name: Generate changelog
       id: changelog
       run: |
-        PREVIOUS_TAG=${{ steps.previoustag.outputs.PREVIOUS_TAG }}
-        if [ -z "$PREVIOUS_TAG" ]; then
-          # If there's no previous tag, get all commits
-          CHANGELOG=$(git log --pretty=format:"- %s" --reverse)
+        echo "Generating changelog..."
+        echo "## New Features" >> CHANGELOG.md
+        features=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 @^)..@ | grep '^- feat:')
+        if [ -z "$features" ]; then
+            echo "No new features have been added" >> CHANGELOG.md
         else
-          # Get commits between the previous tag and the current one
-          CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" --reverse)
+            echo "$features" >> CHANGELOG.md
         fi
-        # Escape newlines and quotes for GitHub Actions
-        CHANGELOG="${CHANGELOG//'%'/'%25'}"
-        CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-        CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-        echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-        echo "$CHANGELOG" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        echo "" >> CHANGELOG.md
+
+        echo "## Fixes" > CHANGELOG.md
+        fixes=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 @^)..@ | grep '^- fix:')
+        if [ -z "$fixes" ]; then
+            echo "No fixes have been made" >> CHANGELOG.md
+        else
+            echo "$fixes" >> CHANGELOG.md
+        fi
+        echo "" >> CHANGELOG.md
+
+        echo "## Other Changes" >> CHANGELOG.md
+        changes=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 @^)..@ | grep -v -e '^- fix:' -e '^- feat:')
+        if [ -z "$changes" ]; then
+            echo "No other changes have been made" >> CHANGELOG.md
+        else
+            echo "$changes" >> CHANGELOG.md
+        fi
+      continue-on-error: true
+
+    - name: Output Changelog
+      id: changelog-output
+      run: |
+        CHANGELOG_CONTENT=$(cat CHANGELOG.md)
+        echo "::set-output name=CHANGELOG::${CHANGELOG_CONTENT}"
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
@@ -60,11 +73,9 @@ jobs:
         files: ./app/build/outputs/aar/translator-release.aar
         name: Release ${{ github.ref_name }}
         body: |
-          # Release ${{ github.ref_name }}
-
           ## What has Changed
 
-          ${{ steps.changelog.outputs.CHANGELOG }}
+          ${{ steps.changelog-output.outputs.CHANGELOG }}
         draft: false
         prerelease: false
       env:
