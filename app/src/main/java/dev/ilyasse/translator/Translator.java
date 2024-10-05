@@ -62,7 +62,7 @@ public class Translator {
                 }
             });
         } catch (Exception e) {
-            callback.onError(e.getMessage(), -1);
+            callback.onError(e.getMessage(), Error.CLIENT_ERROR.getCode());
         }
     }
 

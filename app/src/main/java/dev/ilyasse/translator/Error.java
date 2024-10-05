@@ -4,7 +4,8 @@ enum Error {
     NETWORK_ERROR(0),
     SERVER_ERROR(1),
     PARSING_ERROR(2),
-    TOO_MANY_REQUESTS(3);
+    TOO_MANY_REQUESTS(3),
+    CLIENT_ERROR(4);
 
     private final int code;
 
