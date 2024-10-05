@@ -41,7 +41,7 @@ public class Translator {
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    callback.onError(e.getMessage(), Error.NETWORK_ERROR.getCode());
+                    callback.onError("Connection error: " + e.getMessage(), Error.NETWORK_ERROR.getCode());
                 }
 
                 @Override
