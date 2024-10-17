@@ -28,6 +28,17 @@ public class Translator {
     public void translate(Language sourceLanguage, Language targetLanguage, String text, TranslationCallback callback) {
         String sourceLangCode = sourceLanguage.getCode();
         String targetLangCode = targetLanguage.getCode();
+        String textToTranslate = text.trim();
+
+        if (sourceLangCode.equals(targetLangCode)) {
+            callback.onSuccess(text);
+            return;
+        }
+
+        if (textToTranslate.isEmpty()) {
+            callback.onSuccess("");
+            return;
+        }
 
         try {
             String encodedText = URLEncoder.encode(text.trim(), StandardCharsets.UTF_8.name());
